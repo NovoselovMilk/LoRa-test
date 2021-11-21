@@ -1,0 +1,109 @@
+
+Grow_timer [10175]
+│
+├lib [9007]
+│ │
+│ ├Address_field (288)
+│ ├Exchange_packet (148)
+│ ├Grow_bluetooth (600)
+│ ├Grow_device (388)
+│ ├Grow_device_component (181)
+│ ├Grow_sensor (324)
+│ ├Grow_sensor_component (95)
+│ ├Grow_timer (923)
+│ ├LoRa (652)
+│ ├LoRa_contact_data (2051)
+│ ├LoRa_packet (104)
+│ ├LoRa_register (1135)
+│ ├Packet_analyzer (1876)
+│ └Period_adjuster (242)
+│ 
+└src [1168]
+
+
+
+
+
+Grow_timer [10175]
+│
+├lib [9007]
+│ │
+│ ├Address_field [288]
+│ │ ├Address_field.h (66)
+│ │ └Address_field.cpp (222)
+│ │
+│ ├Exchange_packet [148]
+│ │ ├Exchange_packet.h (36)
+│ │ └Exchange_packet.cpp (112)
+│ │
+│ ├Grow_bluetooth [600]
+│ │ ├Grow_bluetooth.h (63)
+│ │ └Grow_bluetooth.cpp (537)
+│ │
+│ ├Grow_device [388]
+│ │ ├Grow_device.h (79)
+│ │ └Grow_device.cpp (309)
+│ │
+│ ├Grow_device_component [181]
+│ │ ├Grow_device_component.h (62)
+│ │ └Grow_device_component.cpp (119)
+│ │
+│ ├Grow_sensor [324]
+│ │ ├Grow_sensor.h (74)
+│ │ └Grow_sensor.cpp (250)
+│ │
+│ ├Grow_sensor_component [95]
+│ │ ├Grow_sensor_component.h (45)
+│ │ └Grow_sensor_component.cpp (50)
+│ │
+│ ├Grow_timer [923]
+│ │ ├Grow_timer.h (117)
+│ │ └Grow_timer.cpp (806)
+│ │
+│ ├LoRa [652]
+│ │ ├LoRa.h (109)
+│ │ └LoRa.cpp (543)
+│ │
+│ ├LoRa_contact_data [2051]
+│ │ ├LoRa_contact_data.h (267)
+│ │ └LoRa_contact_data.cpp (1784)
+│ │
+│ ├LoRa_packet [104]
+│ │ ├LoRa_packet.h (32)
+│ │ └LoRa_packet.cpp (72)
+│ │
+│ ├LoRa_register [1135]
+│ │ ├LoRa_register.h (71)
+│ │ ├LoRa_register.cpp (368)
+│ │ ├LoRa_register_data.h (241)
+│ │ └LoRa_register_data.cpp (455)
+│ │
+│ ├Packet_analyzer [1876]
+│ │ ├Packet_analyzer.h (164)
+│ │ ├Packet_analyzer.cpp (1628)
+│ │ └Packet_field.h (84)
+│ │
+│ └Period_adjuster [242]
+│   ├Period_adjuster.h (66)
+│   └Period_adjuster.cpp (176)
+│ 
+└src [1168]
+ │
+ └main.cpp (1168)
+
+
+
+
+
+
+
+This directory is intended for PIO Unit Testing and project tests.
+
+Unit Testing is a software testing method by which individual units of
+source code, sets of one or more MCU program modules together with associated
+control data, usage procedures, and operating procedures, are tested to
+determine whether they are fit for use. Unit testing finds problems early
+in the development cycle.
+
+More information about PIO Unit Testing:
+- https://docs.platformio.org/page/plus/unit-testing.html
