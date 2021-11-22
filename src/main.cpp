@@ -79,7 +79,7 @@ volatile uint16_t itr_dio0 = 0, itr_dio1 = 0;
 #define MAX_SIZE 99
 uint8_t buffer[MAX_SIZE] = "Hello world!";
 uint8_t len = 13;
-// lora_receive_mode - чтобы после проверки прерывания (при
+//     lora_receive_mode - чтобы после проверки прерывания (при
 //     работе с обоими режимами) не запустилась функция приёма
 //     В main поддержки 2-х режимов нет.
 bool lora_receive_mode = false;

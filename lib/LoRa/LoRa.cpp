@@ -51,7 +51,7 @@ REG_PA_DAC = 0x4D//,
 #define MODE_RX_SINGLE 0x06 // Единичное получение
 #define MODE_CAD 0x07 // Обнаружение активности канала
 
-// 
+// запись в RX или TX базового адреса
 #define RX_BASE_ADDR 0x00
 #define TX_BASE_ADDR 0x01
 
@@ -146,35 +146,12 @@ void LoRa::init(SPIClass* set_spi, SPISettings* set_setting, uint8_t nss) {
     pinMode(_nss, OUTPUT);
     digitalWrite(_nss, HIGH);
 }
-// uint8_t LoRa::field_set(Address_field field, uint32_t value, bool write) {
-//     uint8_t result;
-//     result =  set_field_value(field, value);
-//     if(write) {
-//         result =  register_write(field, true, true);
-//     }
-//     return result;
-// }
-// uint8_t LoRa::field_set(Address_field* fields, uint32_t* values, uint8_t amt, bool write) {
-//     uint8_t result;
-//     result =  set_field_value(fields, values, amt);
-//     if(write) {
-//         result =  register_write(fields, amt, true, true);
-//     }
-//     return result;
-// }
 
-// uint8_t LoRa::field_get(Address_field field, uint32_t* value, bool read) {
-//     return  get_field_value(field, value, read);
-// }
-// uint8_t LoRa::field_get(Address_field fields[], uint32_t* values, uint8_t amt, bool read) {
-//     return  get_field_value(fields, values, amt, read);
-// }
 
 
 uint8_t LoRa::begin(ulong frequency, bool paboost, uint8_t signal_power, uint8_t SF, ulong SBW, uint8_t sync_word) {
     if(!_init) return 1;
     uint32_t result = 0;                           
-    //uint8_t amt;
     // настройка выходов
     pinMode(_reset, OUTPUT);
     digitalWrite(_reset, HIGH);
@@ -186,7 +163,6 @@ uint8_t LoRa::begin(ulong frequency, bool paboost, uint8_t signal_power, uint8_t
     delay(50);
     
     // проверка версии LoRa-модуля
-    // amt = field_get(Version, &result);
 
     result = _read_register(REG_VERSION);  
     if (result != 0x12) return 2;
@@ -195,18 +171,13 @@ uint8_t LoRa::begin(ulong frequency, bool paboost, uint8_t signal_power, uint8_t
     // установка частоты работы модуля
     set_frequency(frequency);
     // установка адресов памяти RX и TX
-    // if(field_set(FifoRxBaseAddr, 0x00) != 1) return 5;
     set_base_addr(RX_BASE_ADDR, 0x00);
-    // if(field_set(FifoTxBaseAddr, _FifoTxBaseAddr) != 1) return 6;
     set_base_addr(TX_BASE_ADDR, _FifoTxBaseAddr);
     // настройка LNA
-    //if(field_set(LnaBoostHf, 0x03) != 1) return 7;
     set_LNA(true);
     // установка low data rate optimize
-    //if(field_set(LowDataRateOptimize, 0) != 1) return 8;
     set_data_optimize(false);
     // установка автоматического AGC
-    //if(field_set(AgcAutoOn, 1) != 1) return 9;
     set_AGC(true);
     // установка силы сигнала на 14 дБ
     set_TX_power(signal_power, paboost);
@@ -233,9 +204,6 @@ void LoRa::end() {
 
 
 void LoRa::set_mode(uint8_t mode) {
-    //  Address_field fields[3] = {LongRangeMode, LowFrequencyModeOn, Mode};
-    //  uint32_t values[3] = {1, 0, mode}; 
-    // return field_set(fields, values, 3);
 
     uint8_t reg = _read_register(REG_OP_MODE);
     reg = ((reg | 0x80) & 0xF7); 
@@ -272,8 +240,6 @@ void LoRa::mode_RX_continuous(bool set_dio) {
     // if (_dio1 != 0)
     //     field_set(Dio1Mapping, 0);
     if (set_dio & ((_dio0 != 0) || (_dio1 != 0))) {
-        // field_set(Dio0Mapping, 0, false);
-        // field_set(Dio1Mapping, 0);
         uint8_t RegDioMapping1 = _read_register(REG_DIO_MAPPING_1);
         RegDioMapping1 &= 0x0F;
         _write_register(REG_DIO_MAPPING_1, RegDioMapping1);
@@ -283,8 +249,6 @@ void LoRa::mode_RX_continuous(bool set_dio) {
 // Режим единичного приёма
 void LoRa::mode_RX_single(bool set_dio) {
     if (set_dio & ((_dio0 != 0) || (_dio1 != 0))) {
-        // field_set(Dio0Mapping, 0, false);
-        // field_set(Dio1Mapping, 0);
         uint8_t RegDioMapping1 = _read_register(REG_DIO_MAPPING_1);
         RegDioMapping1 &= 0x0F;
         _write_register(REG_DIO_MAPPING_1, RegDioMapping1);
@@ -302,8 +266,6 @@ void LoRa::mode_CAD(bool set_dio) {
     // if (_dio1 != 0)
     //     field_set(Dio1Mapping, 2);
     if (set_dio & ((_dio0 != 0) || (_dio1 != 0))) {
-        // field_set(Dio0Mapping, 2, false);               // ??
-        // field_set(Dio1Mapping, 2);
         uint8_t RegDioMapping1 = _read_register(REG_DIO_MAPPING_1);
         RegDioMapping1 = (RegDioMapping1 & 0x0F) | 0xA0;
         _write_register(REG_DIO_MAPPING_1, RegDioMapping1);
@@ -314,13 +276,10 @@ void LoRa::mode_CAD(bool set_dio) {
 
 // Установка силы отправляемого пакета
 uint8_t LoRa::set_TX_power(uint8_t power, bool paboost, uint8_t max_power) {
-    //  Address_field fields[4] = {PaDac, PaSelect, MaxPower, OutputPower};
-    //  //uint32_t pa_dac, pa_select;
 
-      int16_t power_adjustment, min_power_value, max_power_value;
-
-      uint8_t RegPaConfig = _read_register(REG_PA_CONFIG);
-      uint8_t RegPaDac = _read_register(REG_PA_DAC);
+    int16_t power_adjustment, min_power_value, max_power_value;
+    uint8_t RegPaConfig = _read_register(REG_PA_CONFIG);
+    uint8_t RegPaDac = _read_register(REG_PA_DAC);
 
     if (max_power < 0x01)
         max_power = 0x01;
@@ -360,10 +319,6 @@ uint8_t LoRa::set_TX_power(uint8_t power, bool paboost, uint8_t max_power) {
         //pa_dac = RF_PADAC_20DBM_OFF;
         RegPaDac = (RegPaDac & 0xF8) | RF_PADAC_20DBM_OFF;
     // Передача настроек
-
-    //  uint32_t values[4] = {pa_dac, pa_select, max_power, power};
-    //  return field_set(fields, values, 4);
-
     _write_register(REG_PA_CONFIG, RegPaConfig);
     _write_register(REG_PA_DAC, RegPaDac);
     return 1;
@@ -388,10 +343,9 @@ uint8_t LoRa::set_frequency(ulong frequency) {
 // Установка силы коэффициента распространения SF
 uint8_t LoRa::set_spreading_factor(uint8_t SF) {
 
-    // uint8_t RegDetectThreshold;
     uint8_t RegModemConfig2 = _read_register(REG_MODEM_CONFIG_2);
     uint8_t RegDetectOptimize = _read_register(REG_DETECTION_OPTIMIZE);              
-    uint8_t detection_optimize, detection_threshold;                                           // ВОПРОС
+    uint8_t detection_optimize, detection_threshold;                               
     if (SF < 6)
         SF = 6;
     else if (SF > 12)
@@ -408,10 +362,6 @@ uint8_t LoRa::set_spreading_factor(uint8_t SF) {
     SF <<= 4;
     RegModemConfig2 = (RegModemConfig2 & 0x0F) | (SF & 0xF0);
     RegDetectOptimize = (RegDetectOptimize & 0xF8) | (detection_optimize & 0x07);
-    // RegDetectThreshold = detection_threshold;
-    // Address_field fields[3] = {DetectionOptimize, DetectionThreshold, SpreadingFactor};
-    // uint32_t values[3] = {detection_optimize, detection_threshold, SF};
-    // return field_set(fields, values, 3);
 
     _write_register(REG_MODEM_CONFIG_2, RegModemConfig2);
     _write_register(REG_DETECTION_OPTIMIZE, RegDetectOptimize);
@@ -447,7 +397,6 @@ bool LoRa::set_sync_word(uint8_t SW){
 
 // Установка длины преамбулы
 bool LoRa::set_preamble_length(uint length) {
-    // return field_set(PreambleLength, length);
     uint8_t RegPreambleLsb;
     uint8_t RegPreambleMsb;
     
@@ -493,8 +442,6 @@ bool LoRa::set_AGC(bool set){
 
 // Включение CRC на LoRa-модуле
 bool LoRa::crc_enable() {
-    //return field_set(RxPayloadCrcOn, 1);
-
     uint8_t RegModemConfig2 = _read_register(REG_MODEM_CONFIG_2);
     if (RegModemConfig2 >> 0x02 & 0x01) return 1;
     RegModemConfig2 |= 0x04; 
@@ -503,8 +450,6 @@ bool LoRa::crc_enable() {
 }
 // Выключение CRC на LoRa-модуле
 bool LoRa::crc_disable() {
-    // return field_set(RxPayloadCrcOn, 0);
-
     uint8_t reg = _read_register(REG_MODEM_CONFIG_2);
     if (!(reg >> 0x02 & 0x01)) return 1;
     reg &= 0xFB; 
@@ -516,17 +461,13 @@ bool LoRa::crc_disable() {
 // Приём пакета
 class LoRa_packet LoRa::receiver_packet(uint8_t count, ulong wait, bool rssi, bool snr) {
     class LoRa_packet send_packet;
-    // Address_field fields[3] = {RxTimeout, RxDone, PayloadCrcError};
-    // Address_field flags[3] = {RxDone, ValidHeader, PayloadCrcError};
     if(count <= 1) {
         if(count == 1)
             mode_RX_single();
         uint8_t rx_done, rx_timeout, crc_err;
-        //uint8_t amt;
         bool signal = false;
         ulong time, start_time, read_time;
         int pin_done, pin_timeout, pin_crc_err;
-        // uint32_t values[3] = {0, 0, 0};
         rx_done = rx_timeout = crc_err = 0;
         if(wait == 0)
             time = 0;
@@ -551,12 +492,6 @@ class LoRa_packet LoRa::receiver_packet(uint8_t count, ulong wait, bool rssi, bo
                 }
                 // Если неработают DIO выходы, был signal или превышено время ожидания
                 if (((count == 0) && (wait == 0)) || (_dio0 == 0) || (_dio1 == 0) || (millis() - start_time > 2000) || signal) {
-                    // amt = field_get(fields, values, 3, true);
-                    // if(amt == 3) {
-                    //     rx_timeout = values[0];
-                    //     rx_done = values[1];
-                    //     crc_err = values[2];
-                    // }
 
                     uint8_t RegIrqFlags = _read_register(REG_IRQ_FLAGS);
                     rx_timeout = RegIrqFlags & RX_TIME_OUT;
@@ -568,6 +503,7 @@ class LoRa_packet LoRa::receiver_packet(uint8_t count, ulong wait, bool rssi, bo
                 }
                 if(rx_timeout != 0) {
                     //  clear_flags(RxTimeout);
+                    // очистка флага
                     _write_register(REG_IRQ_FLAGS, RX_TIME_OUT);
                     mode_RX_single(false);
                     rx_done = rx_timeout = crc_err = 0;
@@ -583,14 +519,10 @@ class LoRa_packet LoRa::receiver_packet(uint8_t count, ulong wait, bool rssi, bo
         if((rx_done > 0) /*&& (crc_err == 0)*/) {
             // очистка флагов
             _write_register(REG_IRQ_FLAGS, RX_DONE | RX_TIME_OUT);
-            //  clear_flags(RxDone);
-            //  clear_flags(RxTimeout);
             send_packet = read_packet_data(crc_err, rssi, snr);
         }
         else {
-            // field_get(fields, values, 3, true);
             _write_register(REG_IRQ_FLAGS, RX_DONE | VALID_HEADER | PAY_LOAD_CRC_ERROR);
-            // clear_flags(flags, 3);
             // send_packet = LoRa_packet();
         }
         if(wait != 0)
@@ -613,9 +545,6 @@ class LoRa_packet LoRa::read_packet_data(bool crc_err, bool f_rssi, bool f_snr) 
     else
         rssi = 0;
 
-    // field_get(FifoRxBytesNb, &length, true);
-    // field_get(FifoRxCurrentAddr, &adr, true);
-    // field_set(FifoAddrPtr, adr);
     length = _read_register(REG_RX_NB_BYTES);
     adr = _read_register(REG_FIFO_RX_CURRENT_ADDR);
     _write_register(REG_FIFO_ADDR_PTR, adr);
@@ -654,7 +583,6 @@ uint8_t LoRa::packet_rssi() {
 // SNR последнего принятого пакета
 float LoRa::packet_snr() {
     float snr = 0;
-    // field_get(PacketSnr, (uint32_t*)&snr, true);
     uint8_t RegPktSnrValue = _read_register(REG_PKT_SNR_VALUE);
     snr = RegPktSnrValue;
     return (snr * 0.25);
@@ -677,7 +605,6 @@ bool LoRa::sender_packet(const std::array<uint8_t, SIZE_LORA_PACKET_MAX_LEN>& ad
 // Объявление пакета
 bool LoRa::packet_begin() {
     mode_FSTX();
-    //  field_set(FifoAddrPtr, _FifoTxBaseAddr);
     _write_register(REG_FIFO_ADDR_PTR, _FifoTxBaseAddr);
     _packet_length = 0;
     return true;
